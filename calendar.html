@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile-Style Calendar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #2a7fba;
+            color: #ffffff;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .calendar-container {
+            max-width: 350px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .day {
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border-radius: 50%;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+        }
+        .day:hover, .selected {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        .event-list {
+            margin-top: 15px;
+            text-align: left;
+        }
+        .event {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .event-details {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        .event-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .event-actions {
+            display: none;
+            margin-top: 5px;
+        }
+        .event-actions button {
+            margin: 0 2px;
+            padding: 3px 8px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .event:hover .event-actions {
+            display: block;
+        }
+        .add-event-btn {
+            margin-top: 10px;
+            padding: 10px;
+            background: #ffffff;
+            border: none;
+            color: #2a7fba;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+        }
+        .popup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f980e8;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #2a7fba;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 300px;
+        }
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 15px 0;
+            border: none;
+            border-radius: 5px;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        .modal-buttons button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .recurrence-options {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <button onclick="prevMonth()">&#10094;</button>
+            <span id="monthYear"></span>
+            <button onclick="nextMonth()">&#10095;</button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        <div class="event-list" id="eventList"></div>
+        <button class="add-event-btn" onclick="showAddEventModal()">Add Event</button>
+    </div>
+    <div class="popup" id="popup"></div>
+    <audio id="alarm-sound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+    
+    <!-- Add Event Modal -->
+    <div class="modal" id="addEventModal">
+        <div class="modal-content">
+            <h3>Add New Event</h3>
+            <input type="text" id="eventTitle" placeholder="Event Title">
+            <input type="text" id="eventTime" placeholder="Time (HH:MM AM/PM)">
+            <div class="recurrence-options">
+                <label>Recurrence:</label>
+                <select id="recurrenceType">
+                    <option value="once">Once</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="addEvent()">Save</button>
+                <button onclick="hideAddEventModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Event Modal -->
+    <div class="modal" id="editEventModal">
+        <div class="modal-content">
+            <h3>Edit Event</h3>
+            <input type="text" id="editEventTitle" placeholder="Event Title">
+            <input type="text" id="editEventTime" placeholder="Time (HH:MM AM/PM)">
+            <div class="recurrence-options">
+                <label>Recurrence:</label>
+                <select id="editRecurrenceType">
+                    <option value="once">Once</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="saveEditedEvent()">Save</button>
+                <button onclick="hideEditEventModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        const events = {};
+        let selectedDate = null;
+        let currentlyEditingEvent = null;
+        const scheduledNotifications = {};
+
+        function generateCalendar() {
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById("monthYear").innerText = ${monthNames[currentMonth]} ${currentYear};
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+            
+            let calendarGrid = document.getElementById("calendarGrid");
+            calendarGrid.innerHTML = "";
+            
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                let emptyDiv = document.createElement("div");
+                emptyDiv.classList.add("day");
+                emptyDiv.style.visibility = "hidden";
+                calendarGrid.appendChild(emptyDiv);
+            }
+            
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                let dayDiv = document.createElement("div");
+                dayDiv.classList.add("day");
+                dayDiv.innerText = day;
+                dayDiv.onclick = () => {
+                    selectedDate = ${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')};
+                    highlightSelectedDay(dayDiv);
+                    showAddEventModal();
+                };
+                calendarGrid.appendChild(dayDiv);
+            }
+            
+            displayEventsForCurrentMonth();
+        }
+
+        function highlightSelectedDay(selectedDiv) {
+            const days = document.querySelectorAll('.day');
+            days.forEach(day => {
+                day.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+            });
+            selectedDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+        }
+
+        function displayEventsForCurrentMonth() {
+            let eventList = document.getElementById("eventList");
+            eventList.innerHTML = "<h3>Events for " + document.getElementById("monthYear").innerText + "</h3>";
+            
+            const currentMonthStr = ${currentYear}-${String(currentMonth + 1).padStart(2, '0')};
+            const currentMonthEvents = {};
+            
+            for (let date in events) {
+                if (date.startsWith(currentMonthStr)) {
+                    currentMonthEvents[date] = events[date];
+                }
+            }
+            
+            if (Object.keys(currentMonthEvents).length === 0) {
+                eventList.innerHTML += "<p>No events scheduled this month</p>";
+                return;
+            }
+            
+            const sortedDates = Object.keys(currentMonthEvents).sort((a, b) => new Date(a) - new Date(b));
+            
+            for (let date of sortedDates) {
+                currentMonthEvents[date].sort((a, b) => {
+                    return convertTo24Hour(a.time).localeCompare(convertTo24Hour(b.time));
+                });
+                
+                currentMonthEvents[date].forEach(event => {
+                    let eventDiv = document.createElement("div");
+                    eventDiv.classList.add("event");
+                    eventDiv.onclick = (e) => {
+                        if (!e.target.tagName === 'BUTTON') {
+                            const actions = eventDiv.querySelector('.event-actions');
+                            actions.style.display = actions.style.display === 'block' ? 'none' : 'block';
+                        }
+                    };
+                    
+                    eventDiv.innerHTML = `
+                        <div class="event-details">
+                            <div class="event-row">
+                                <strong>${formatDate(date)}</strong>
+                                <span>${event.time}</span>
+                            </div>
+                            <div class="event-row">
+                                <span>${event.title}</span>
+                                <small>${event.recurrence !== 'once' ? (${event.recurrence}) : ''}</small>
+                            </div>
+                            <div class="event-actions">
+                                <button onclick="showEditEventModal('${event.id}', ${JSON.stringify(event).replace(/"/g, '&quot;')})">Edit</button>
+                                <button onclick="deleteEvent('${date}', '${event.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                    eventList.appendChild(eventDiv);
+                });
+            }
+        }
+
+        function showAddEventModal() {
+            if (!selectedDate) {
+                selectedDate = ${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')};
+            }
+            document.getElementById("addEventModal").style.display = "flex";
+        }
+
+        function hideAddEventModal() {
+            document.getElementById("addEventModal").style.display = "none";
+        }
+
+        function showEditEventModal(eventId, event) {
+            document.getElementById("editEventTitle").value = event.title;
+            document.getElementById("editEventTime").value = event.time;
+            document.getElementById("editRecurrenceType").value = event.recurrence || "once";
+            currentlyEditingEvent = { id: eventId, date: event.date };
+            document.getElementById("editEventModal").style.display = "flex";
+        }
+
+        function hideEditEventModal() {
+            document.getElementById("editEventModal").style.display = "none";
+            currentlyEditingEvent = null;
+        }
+
+        function addEvent() {
+            const title = document.getElementById("eventTitle").value.trim();
+            const time = document.getElementById("eventTime").value.trim();
+            const recurrence = document.getElementById("recurrenceType").value;
+            
+            if (!title || !time) {
+                showPopup("Please enter both title and time");
+                return;
+            }
+            
+            const eventId = Date.now().toString();
+            
+            if (!events[selectedDate]) events[selectedDate] = [];
+            events[selectedDate].push({ 
+                id: eventId,
+                title: title, 
+                time: time, 
+                date: selectedDate,
+                recurrence: recurrence 
+            });
+            
+            displayEventsForCurrentMonth();
+            scheduleNotification(selectedDate, title, time, recurrence, eventId);
+            showPopup(Event Created: ${title} at ${time});
+            hideAddEventModal();
+            
+            document.getElementById("eventTitle").value = "";
+            document.getElementById("eventTime").value = "";
+        }
+
+        function saveEditedEvent() {
+            const title = document.getElementById("editEventTitle").value.trim();
+            const time = document.getElementById("editEventTime").value.trim();
+            const recurrence = document.getElementById("editRecurrenceType").value;
+            
+            if (!title || !time) {
+                showPopup("Please enter both title and time");
+                return;
+            }
+            
+            if (!currentlyEditingEvent) return;
+            
+            const date = currentlyEditingEvent.date;
+            const eventId = currentlyEditingEvent.id;
+            
+            if (events[date]) {
+                const eventIndex = events[date].findIndex(e => e.id === eventId);
+                if (eventIndex !== -1) {
+                    events[date][eventIndex] = { 
+                        id: eventId,
+                        title: title, 
+                        time: time, 
+                        date: date,
+                        recurrence: recurrence 
+                    };
+                    
+                    clearScheduledNotification(eventId);
+                    scheduleNotification(date, title, time, recurrence, eventId);
+                    
+                    displayEventsForCurrentMonth();
+                    showPopup("Event updated successfully");
+                    hideEditEventModal();
+                }
+            }
+        }
+
+        function deleteEvent(date, eventId) {
+            if (events[date]) {
+                events[date] = events[date].filter(e => e.id !== eventId);
+                if (events[date].length === 0) {
+                    delete events[date];
+                }
+                
+                clearScheduledNotification(eventId);
+                displayEventsForCurrentMonth();
+                showPopup("Event deleted");
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function scheduleNotification(date, title, time, recurrence, eventId) {
+            const eventDateTime = new Date(${date} ${convertTo24Hour(time)});
+            const now = new Date();
+            
+            clearScheduledNotification(eventId);
+            
+            if (recurrence === 'once') {
+                const timeUntilEvent = eventDateTime - now;
+                if (timeUntilEvent > 0) {
+                    const timeoutId = setTimeout(() => {
+                        triggerNotification(title, time, eventId);
+                    }, timeUntilEvent);
+                    scheduledNotifications[eventId] = timeoutId;
+                }
+            } else if (recurrence === 'daily') {
+                if (eventDateTime > now) {
+                    const timeUntilEvent = eventDateTime - now;
+                    const timeoutId = setTimeout(() => {
+                        triggerNotification(title, time, eventId);
+                        scheduleDailyRecurrence(title, time, eventId);
+                    }, timeUntilEvent);
+                    scheduledNotifications[eventId] = timeoutId;
+                } else {
+                    scheduleDailyRecurrence(title, time, eventId);
+                }
+            } else if (recurrence === 'weekly') {
+                if (eventDateTime > now) {
+                    const timeUntilEvent = eventDateTime - now;
+                    const timeoutId = setTimeout(() => {
+                        triggerNotification(title, time, eventId);
+                        scheduleWeeklyRecurrence(title, time, eventId, eventDateTime);
+                    }, timeUntilEvent);
+                    scheduledNotifications[eventId] = timeoutId;
+                } else {
+                    scheduleWeeklyRecurrence(title, time, eventId, eventDateTime);
+                }
+            }
+        }
+
+        function scheduleDailyRecurrence(title, time, eventId) {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(now.getDate() + 1);
+            tomorrow.setHours(parseInt(time.split(':')[0]) + (time.includes('PM') ? 12 : 0));
+            tomorrow.setMinutes(parseInt(time.split(':')[1].split(' ')[0]));
+            
+            const timeUntilEvent = tomorrow - now;
+            const timeoutId = setTimeout(() => {
+                triggerNotification(title, time, eventId);
+                scheduleDailyRecurrence(title, time, eventId);
+            }, timeUntilEvent);
+            
+            scheduledNotifications[eventId] = timeoutId;
+        }
+
+        function scheduleWeeklyRecurrence(title, time, eventId, originalDate) {
+            const now = new Date();
+            const nextWeek = new Date(originalDate);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            
+            if (nextWeek < now) {
+                nextWeek.setDate(nextWeek.getDate() + 7);
+            }
+            
+            const timeUntilEvent = nextWeek - now;
+            const timeoutId = setTimeout(() => {
+                triggerNotification(title, time, eventId);
+                scheduleWeeklyRecurrence(title, time, eventId, nextWeek);
+            }, timeUntilEvent);
+            
+            scheduledNotifications[eventId] = timeoutId;
+        }
+
+        function clearScheduledNotification(eventId) {
+            if (scheduledNotifications[eventId]) {
+                clearTimeout(scheduledNotifications[eventId]);
+                delete scheduledNotifications[eventId];
+            }
+        }
+
+        function triggerNotification(title, time, eventId) {
+            showPopup(Reminder: ${title} at ${time});
+            document.getElementById("alarm-sound").play();
+            
+            if (!events[eventId] || !events[eventId].recurrence) {
+                clearScheduledNotification(eventId);
+            }
+        }
+
+        function showPopup(message) {
+            let popup = document.getElementById("popup");
+            popup.innerText = message;
+            popup.style.display = "block";
+            setTimeout(() => {
+                popup.style.display = "none";
+            }, 3000);
+        }
+
+        function convertTo24Hour(time) {
+            if (!time) return '';
+            let [timePart, modifier] = time.split(" ");
+            if (!modifier) return timePart;
+            let [hours, minutes] = timePart.split(":");
+            if (modifier.toLowerCase() === "pm" && hours !== "12") {
+                hours = parseInt(hours) + 12;
+            } else if (modifier.toLowerCase() === "am" && hours === "12") {
+                hours = "00";
+            }
+            return ${hours}:${minutes};
+        }
+
+        function prevMonth() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            generateCalendar();
+        }
+
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            generateCalendar();
+        }
+
+        // Initialize calendar
+        generateCalendar();
+        
+        // Select today's date by default
+        const today = new Date();
+        selectedDate = ${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')};
+        
+        // Highlight today's date in the calendar
+        setTimeout(() => {
+            const days = document.querySelectorAll('.day');
+            days.forEach(day => {
+                if (day.textContent === today.getDate().toString()) {
+                    highlightSelectedDay(day);
+                }
+            });
+        }, 100);
+    </script>
+</body>
+</html>
