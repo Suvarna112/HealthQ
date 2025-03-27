@@ -7,8 +7,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #2a7fba;
-            color: #ffffff;
+            background: #e0c2ff;
+            color: black;
             text-align: center;
             margin: 0;
             padding: 0;
@@ -42,7 +42,7 @@
             border-radius: 50%;
             cursor: pointer;
             background: rgba(255, 255, 255, 0.3);
-            color: #ffffff;
+            color: black;
         }
         .day:hover, .selected {
             background: rgba(255, 255, 255, 0.5);
@@ -213,7 +213,7 @@
 
         function generateCalendar() {
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            document.getElementById("monthYear").innerText = ${monthNames[currentMonth]} ${currentYear};
+            document.getElementById("monthYear").innerText = `${monthNames[currentMonth]} ${currentYear}`;
             const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
             const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
             
@@ -234,7 +234,7 @@
                 dayDiv.classList.add("day");
                 dayDiv.innerText = day;
                 dayDiv.onclick = () => {
-                    selectedDate = ${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')};
+                    selectedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                     highlightSelectedDay(dayDiv);
                     showAddEventModal();
                 };
@@ -256,7 +256,7 @@
             let eventList = document.getElementById("eventList");
             eventList.innerHTML = "<h3>Events for " + document.getElementById("monthYear").innerText + "</h3>";
             
-            const currentMonthStr = ${currentYear}-${String(currentMonth + 1).padStart(2, '0')};
+            const currentMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
             const currentMonthEvents = {};
             
             for (let date in events) {
@@ -295,7 +295,7 @@
                             </div>
                             <div class="event-row">
                                 <span>${event.title}</span>
-                                <small>${event.recurrence !== 'once' ? (${event.recurrence}) : ''}</small>
+                                <small>${event.recurrence !== 'once' ? `(${event.recurrence})` : ''}</small>
                             </div>
                             <div class="event-actions">
                                 <button onclick="showEditEventModal('${event.id}', ${JSON.stringify(event).replace(/"/g, '&quot;')})">Edit</button>
@@ -310,7 +310,7 @@
 
         function showAddEventModal() {
             if (!selectedDate) {
-                selectedDate = ${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')};
+                selectedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
             }
             document.getElementById("addEventModal").style.display = "flex";
         }
@@ -355,7 +355,7 @@
             
             displayEventsForCurrentMonth();
             scheduleNotification(selectedDate, title, time, recurrence, eventId);
-            showPopup(Event Created: ${title} at ${time});
+            showPopup(`Event Created: ${title} at ${time}`);
             hideAddEventModal();
             
             document.getElementById("eventTitle").value = "";
@@ -417,7 +417,7 @@
         }
 
         function scheduleNotification(date, title, time, recurrence, eventId) {
-            const eventDateTime = new Date(${date} ${convertTo24Hour(time)});
+            const eventDateTime = new Date(`${date} ${convertTo24Hour(time)}`);
             const now = new Date();
             
             clearScheduledNotification(eventId);
@@ -497,7 +497,7 @@
         }
 
         function triggerNotification(title, time, eventId) {
-            showPopup(Reminder: ${title} at ${time});
+            showPopup(`Reminder: ${title} at ${time}`);
             document.getElementById("alarm-sound").play();
             
             if (!events[eventId] || !events[eventId].recurrence) {
@@ -524,7 +524,7 @@
             } else if (modifier.toLowerCase() === "am" && hours === "12") {
                 hours = "00";
             }
-            return ${hours}:${minutes};
+            return `${hours}:${minutes}`;
         }
 
         function prevMonth() {
@@ -550,7 +550,7 @@
         
         // Select today's date by default
         const today = new Date();
-        selectedDate = ${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')};
+        selectedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
         
         // Highlight today's date in the calendar
         setTimeout(() => {
