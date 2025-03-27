@@ -1,40 +1,29 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
+<head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   </head>
-<body>
-  <div class="container">
-    <input type="checkbox" id="flip">
-    <div class="cover">
-      <div class="front">
-        <img src="images/frontImg.jpg" alt="">
-        <div class="text">
-          <span class="text-1">Every new friend is a <br> new adventure</span>
-          <span class="text-2">Let's get connected</span>
-        </div>
-      </div>
-      <div class="back">
-        <img class="backImg" src="images/backImg.jpg" alt="">
-        <div class="text">
-          <span class="text-1">Complete miles of journey <br> with one step</span>
-          <span class="text-2">Let's get started</span>
-        </div>
-      </div>
-    </div>
-    <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Signup</title>
-    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
+        <h1>Welcome to MedEase</h1>
+        <input type="checkbox" id="flip">
+        <div class="cover">
+            <div class="front">
+                <img src="images/frontImg.jpg" alt="">
+                <div class="text">
+                    <span class="text-1">Accessible, Intelligent Healthcare, at your fingertips</span>
+                </div>
+            </div>
+            <div class="back">
+                <img class="backImg" src="images/backImg.jpg" alt="">
+                <div class="text">
+                    <span class="text-1">Healthcare that's always available, always informed</span>
+                </div>
+            </div>
+        </div>
         <div class="forms">
             <div class="form-content">
                 <div class="login-form">
@@ -43,7 +32,7 @@
                         <div class="input-boxes">
                             <div class="input-box">
                                 <i class="fas fa-envelope"></i>
-                                <input type="text" placeholder="Enter your email" required>
+                                <input type="email" placeholder="Enter your email" required>
                             </div>
                             <div class="input-box">
                                 <i class="fas fa-lock"></i>
@@ -67,7 +56,7 @@
                             </div>
                             <div class="input-box">
                                 <i class="fas fa-envelope"></i>
-                                <input type="text" placeholder="Enter your email" required>
+                                <input type="email" placeholder="Enter your email" required>
                             </div>
                             <div class="input-box">
                                 <i class="fas fa-lock"></i>
@@ -88,22 +77,41 @@
             document.querySelector('.login-form').classList.toggle('hide');
             document.querySelector('.signup-form').classList.toggle('hide');
         }
-    
+
         function handleLogin(event) {
             event.preventDefault();
-            let email = document.querySelector(".login-form input[type='text']").value;
+            let email = document.querySelector(".login-form input[type='email']").value;
             localStorage.setItem("userEmail", email);
             window.location.href = "main.html";
         }
-    
+
         function handleSignup(event) {
             event.preventDefault();
-            let name = document.querySelector(".signup-form input[type='text']").value; // Get name
-            let email = document.querySelector(".signup-form input[type='email']").value; // Get email
-            localStorage.setItem("userName", name);  // Store name
-            localStorage.setItem("userEmail", email); // Store email
+            let name = document.querySelector(".signup-form input[type='text']").value;
+            let email = document.querySelector(".signup-form input[type='email']").value;
+            let password = document.querySelector(".signup-form input[type='password']").value;
+
+            let userData = `Name: ${name}\nEmail: ${email}\nPassword: ${password}\n\n`;
+
+            saveDataToFile(userData);
+
+            localStorage.setItem("userName", name);
+            localStorage.setItem("userEmail", email);
             window.location.href = "main.html";
         }
-    </script>     
+
+        function saveDataToFile(data) {
+            // Simulate file saving
+            console.log("Simulating saving to file:\n" + data);
+
+            const link = document.createElement('a');
+            link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(data);
+            link.download = 'user_data.txt';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.dispatchEvent(new MouseEvent('click'));
+            document.body.removeChild(link);
+        }
+    </script>
 </body>
 </html>
