@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handwriting Recognition & Pharmacy</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #e0c2ff, #a88be4);
+            color: #333;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.6s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #6b23c3;
+            text-align: center;
+            margin-bottom: 35px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .option-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .option-buttons button {
+            padding: 15px 30px;
+            margin: 0 20px;
+            cursor: pointer;
+            background: linear-gradient(to right, #6b23c3, #8e44ad);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .option-buttons button:hover {
+            background: linear-gradient(to right, #8e44ad, #6b23c3);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .input-section {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .input-section.active {
+            display: block;
+        }
+
+        input[type="file"],
+        textarea {
+            width: calc(100% - 24px);
+            padding: 14px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="file"]:focus,
+        textarea:focus {
+            border-color: #6b23c3;
+            outline: none;
+        }
+
+        #results {
+            margin-top: 40px;
+        }
+
+        .pharmacy-item {
+            border: 1px solid #eee;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
+        }
+
+        .pharmacy-item h3 {
+            color: #6b23c3;
+            margin-bottom: 12px;
+            font-size: 1.2em;
+        }
+
+        .pharmacy-item p {
+            margin: 10px 0;
+        }
+
+        #image-text-result {
+            margin-top: 15px;
+            font-style: italic;
+            color: #555;
+        }
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Handwriting Recognition & Pharmacy</h1>
+
+        <div class="option-buttons">
+            <button id="upload-option">Upload Image</button>
+            <button id="text-option">Write Medicine</button>
+        </div>
+
+        <div id="upload-input" class="input-section">
+            <input type="file" id="image-upload" accept="image/*">
+            <button id="image-submit">Find Pharmacies</button>
+            <div id="image-text-result"></div>
+        </div>
+
+        <div id="text-input" class="input-section">
+            <textarea id="medicine-text" placeholder="Enter medicine names (comma-separated)"></textarea>
+            <button id="text-submit">Find Pharmacies</button>
+        </div>
+
+        <div id="results">
+            <h2>Nearby Pharmacies</h2>
+            <div id="pharmacy-list"></div>
+        </div>
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const uploadOption = document.getElementById('upload-option');
+            const textOption = document.getElementById('text-option');
+            const uploadInput = document.getElementById('upload-input');
+            const textInput = document.getElementById('text-input');
+            const imageSubmit = document.getElementById('image-submit');
+            const textSubmit = document.getElementById('text-submit');
+            const pharmacyList = document.getElementById('pharmacy-list');
+            const medicineText = document.getElementById('medicine-text');
+            const imageUpload = document.getElementById('image-upload');
+            const imageTextResult = document.getElementById('image-text-result');
+
+            uploadOption.addEventListener('click', () => {
+                uploadInput.classList.add('active');
+                textInput.classList.remove('active');
+            });
+
+            textOption.addEventListener('click', () => {
+                textInput.classList.add('active');
+                uploadInput.classList.remove('active');
+            });
+
+            imageSubmit.addEventListener('click', () => {
+                if (imageUpload.files[0]) {
+                    const file = imageUpload.files[0];
+                    const reader = new FileReader();
+
+                    reader.onload = function(event) {
+                        const img = new Image();
+                        img.onload = function() {
+                            recognizeText(img)
+                                .then(text => {
+                                    imageTextResult.innerHTML = `<p>Extracted Text: ${text}</p>`;
+                                    const medicines = text.split(',').map(item => item.trim());
+                                    if(medicines.length > 0 && medicines[0] != ""){
+                                        displayPharmacies(simulatePharmacySearch(medicines));
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error("Error recognizing text:", err);
+                                    imageTextResult.innerHTML = "<p>Error extracting text from image.</p>";
+                                });
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert("Please upload an image");
+                }
+            });
+
+            textSubmit.addEventListener('click', () => {const medicines = medicineText.value.split(',').map(item => item.trim());
+            if (medicines.length > 0 && medicines[0] != "") {
+                displayPharmacies(simulatePharmacySearch(medicines));
+            } else {
+                alert("Please enter medicine names");
+            }
+        });
+
+        function recognizeText(img) {
+            return new Promise((resolve, reject) => {
+                let processedImage = preprocessImage(img);
+                Tesseract.recognize(
+                    processedImage,
+                    'eng',
+                    { logger: m => console.log(m) }
+                ).then(({ data: { text } }) => {
+                    resolve(text);
+                }).catch(err => {
+                    reject(err);
+                });
+            });
+        }
+
+        function preprocessImage(img) {
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            ctx.drawImage(img, 0, 0, img.width, img.height);
+
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                let avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                data[i] = avg;
+                data[i + 1] = avg;
+                data[i + 2] = avg;
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            let maxBrightness = 0;
+            let minBrightness = 255;
+            for (let i = 0; i < data.length; i += 4) {
+                maxBrightness = Math.max(maxBrightness, data[i]);
+                minBrightness = Math.min(minBrightness, data[i]);
+            }
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = data[i + 1] = data[i + 2] = 255 * (data[i] - minBrightness) / (maxBrightness - minBrightness);
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            let threshold = 150;
+            for (let i = 0; i < data.length; i += 4) {
+                let brightness = data[i];
+                let value = brightness < threshold ? 0 : 255;
+                data[i] = data[i + 1] = data[i + 2] = value;
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            return canvas.toDataURL();
+        }
+
+        function simulatePharmacySearch(medicines) {
+            const fakePharmacies = [
+                { name: 'Local Pharmacy A', address: '123 Main St', medicines: ['Medicine A', 'Medicine B'] },
+                { name: 'City Drugstore', address: '456 Oak Ave', medicines: ['Medicine B', 'Medicine C'] },
+                { name: 'Quick Meds', address: '789 Pine Ln', medicines: ['Medicine A', 'Medicine C'] }
+            ];
+
+            const nearbyPharmacies = getNearbyPharmacies();
+
+            return nearbyPharmacies.concat(fakePharmacies);
+        }
+
+        function getNearbyPharmacies() {
+            return [
+                { name: 'Lahar Pharmacy', address: 'Gwalior, Madhya Pradesh 474001, India', medicines: [] },
+                { name: 'Kalpana medical at windsor hill | home delivery only', address: 'Windsor Hills Rd, Gwalior, Madhya Pradesh 474011, India', medicines: [] },
+                { name: 'Dava Gwalior', address: 'near HDFC Bank, Govindpuri, Ramanuj Nagar, Gwalior, Madhya Pradesh 474011, India', medicines: [] },
+                { name: 'Universal Pharmacy Medical Store', address: 'Hospital Rd, opposite Madhav Dispensary, Lalitpur Colony, Lashkar, Gwalior, Madhya Pradesh 474011, India', medicines: [] },
+                { name: 'Shri Vrandavan Medical', address: 'Shabd Pratap Ashram, near bansal nursing home, Surya Nagar, Gwalior, Madhya Pradesh 474012, India', medicines: [] }
+            ];
+        }
+
+        function displayPharmacies(pharmacies) {
+            pharmacyList.innerHTML = '';
+            pharmacies.forEach(pharmacy => {
+                const pharmacyDiv = document.createElement('div');
+                pharmacyDiv.className = 'pharmacy-item';
+                pharmacyDiv.innerHTML = `
+                    <h3>${pharmacy.name}</h3>
+                    <p>Address: ${pharmacy.address}</p>
+                    <p>Available Medicines: ${pharmacy.medicines.join(', ')}</p>
+                `;
+                pharmacyList.appendChild(pharmacyDiv);
+            });
+        }
+    });
+</script>
+</body>
+</html>

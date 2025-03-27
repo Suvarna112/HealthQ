@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Hospitals</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 800px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #map-container {
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        #hospital-list {
+            margin-top: 20px;
+        }
+
+        .hospital-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+
+        .hospital-item h3 {
+            color: #4CAF50;
+        }
+
+        #error-message {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Nearby Hospitals</h1>
+        <div id="map-container"></div>
+        <div id="hospital-list"></div>
+        <div id="error-message"></div>
+    </div>
+
+    <script>
+        let map;
+
+        function initMap() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                        };
+
+                        map = new google.maps.Map(document.getElementById('map-container'), {
+                            center: userLocation,
+                            zoom: 12,
+                        });
+
+                        new google.maps.Marker({
+                            position: userLocation,
+                            map: map,
+                            title: "Your Location",
+                            icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                        });
+
+                        findNearbyHospitals(userLocation);
+                    },
+                    handleError
+                );
+            } else {
+                document.getElementById('error-message').textContent =
+                    'Geolocation is not supported by this browser.';
+            }
+        }
+
+        function findNearbyHospitals(userLocation) {
+            // Simulated hospital data
+            const hospitals = [
+                {
+                    name: 'Gajra Raja Medical College & Hospital',
+                    address: 'Jhansi Rd, Lashkar, Gwalior, Madhya Pradesh 474009',
+                    phone: '0751 245 1421',
+                    location: { lat: 26.2167, lng: 78.1833 },
+                },
+                {
+                    name: 'Birla Hospital',
+                    address: 'Birla Nagar, Gwalior, Madhya Pradesh 474004',
+                    phone: '0751 249 1111',
+                    location: { lat: 26.2300, lng: 78.1500 },
+                },
+                {
+                    name: 'Apollo Hospitals Gwalior',
+                    address: 'City Centre, Gwalior, Madhya Pradesh 474011',
+                    phone: '0751 244 5555',
+                    location: { lat: 26.2250, lng: 78.1900 },
+                },
+            ];
+
+            displayHospitals(hospitals);
+            hospitals.forEach((hospital) => {
+                new google.maps.Marker({
+                    position: hospital.location,
+                    map: map,
+                    title: hospital.name,
+                });
+            });
+        }
+
+        function displayHospitals(hospitals) {
+            const hospitalList = document.getElementById('hospital-list');
+            hospitalList.innerHTML = '';
+
+            hospitals.forEach((hospital) => {
+                const hospitalDiv = document.createElement('div');
+                hospitalDiv.className = 'hospital-item';
+                hospitalDiv.innerHTML = `
+                    <h3>${hospital.name}</h3>
+                    <p>Address: ${hospital.address}</p>
+                    <p>Phone: ${hospital.phone}</p>
+                `;
+                hospitalList.appendChild(hospitalDiv);
+            });
+        }
+
+        function handleError(error) {
+            let errorMessage = '';
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage = 'User denied the request for Geolocation.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage = 'Location information is unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    errorMessage = 'The request to get user location timed out.';
+                    break;
+                case error.UNKNOWN_ERROR:
+                    errorMessage = 'An unknown error occurred.';
+                    break;
+            }
+            document.getElementById('error-message').textContent = errorMessage;
+        }
+    </script>
+
+    <!-- Load Google Maps API (Replace YOUR_API_KEY) -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
+</body>
+</html>

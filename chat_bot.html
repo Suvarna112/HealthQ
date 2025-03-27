@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Symptom Checker - Enhanced</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #e0f7fa, #c2e9f2);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00796b;
+            font-size: 2.8rem;
+            margin: 2rem 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .chatbox {
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            flex: 1; /* Allow chatbox to grow */
+        }
+
+        .chat-messages {
+            padding: 1.5rem;
+            height: 400px;
+            overflow-y: auto;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .chat-input {
+            display: flex;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 1.2rem;
+            border: none;
+            font-size: 1rem;
+            border-radius: 0 0 0 15px;
+            outline: none;
+        }
+
+        .chat-input button {
+            background-color: #009688;
+            color: white;
+            border: none;
+            padding: 1.2rem 2rem;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 0 0 15px 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .chat-input button:hover {
+            background-color: #00796b;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .message strong {
+            color: #009688;
+        }
+
+        .disclaimer {
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            padding: 1.5rem;
+            background: #f0f8ff;
+            border-left: 5px solid #ff9800;
+            font-size: 0.9rem;
+            color: #555;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark {
+            background: #121212;
+            color: #e0e0e0;
+        }
+
+        .dark .chatbox, .dark .disclaimer {
+            background: #1e1e1e;
+            color: #ddd;
+        }
+
+        .dark .chat-input input {
+            background: #2b2b2b;
+            color: #fff;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .button-container button {
+            padding: 1rem 1.5rem;
+            margin: 0.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .button-container button:hover {
+            transform: translateY(-3px);
+        }
+
+        .button-container button:nth-child(1) {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .button-container button:nth-child(2) {
+            background-color: #607d8b;
+            color: white;
+        }
+
+        .button-container button:nth-child(3) {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .button-container input[type="file"] {
+            display: none;
+        }
+
+        .button-container label {
+            background-color: #ffc107;
+            color: #333;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 AI Symptom Checker</h1>
+    <div class="chatbox">
+        <div id="chat" class="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Type your symptoms...">
+            <button onclick="sendSymptom()">Send</button>
+        </div>
+    </div>
+    <div class="disclaimer">
+        ⚠️ <strong>Disclaimer:</strong> I am an AI-based symptom assistant. My suggestions are based on public datasets and common patterns. For accurate diagnosis and treatment, always consult a licensed medical professional.
+    </div>
+    <div class="button-container">
+        <button onclick="startVoiceInput()">🎤 Speak Symptoms</button>
+        <button onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
+        <button onclick="downloadSummary()">⬇️ Download Report</button><br><br>
+        <label for="docInput">📁 Upload Document</label>
+        <input type="file" id="docInput" accept=".txt,application/pdf" onchange="readDocText(this)">
+        <p style="font-size: 0.85rem; color: #555;">Upload a TXT or PDF file with symptoms</p>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script>
+        // JavaScript remains the same
+        const dataset = [
+            { symptoms: ['fever', 'cough', 'chills'], condition: 'Flu', specialist: 'General Physician' },
+            { symptoms: ['headache', 'nausea'], condition: 'Migraine', specialist: 'Neurologist' },
+            { symptoms: ['chest pain', 'shortness of breath'], condition: 'Angina', specialist: 'Cardiologist' },
+            { symptoms: ['joint pain', 'morning stiffness'], condition: 'Rheumatoid Arthritis', specialist: 'Rheumatologist' },
+            { symptoms: ['blurred vision', 'eye redness'], condition: 'Conjunctivitis', specialist: 'Ophthalmologist' },
+            { symptoms: ['abdominal swelling', 'loss of appetite'], condition: 'Liver Cirrhosis', specialist: 'Hepatologist' },
+        ];
+
+        const synonyms = {
+            "fevr": "fever", "caugh": "cough", "hedaache": "headache", "rashs": "rash",
+            "nusea": "nausea", "thurst": "thirst", "tird": "tired", "vometing": "vomiting",
+            "sorethrot": "sore throat", "brethless": "breathless", "itchy": "itching"
+        };
+
+        const chat = document.getElementById('chat');
+
+        function correctWord(word) { return synonyms[word] || word; }
+
+        function addMessage(sender, text) {
+            const msg = document.createElement('div');
+            msg.className = 'message';
+            msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+            chat.appendChild(msg);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function sendSymptom() {const input = document.getElementById('userInput');
+        const userText = input.value.trim().toLowerCase();
+        if (!userText) return;
+        addMessage('You', userText);
+        input.value = '';
+
+        if (["hi", "hello", "hey"].includes(userText)) {
+            addMessage('Bot', 'Hi! I can guide you through your symptoms. Please describe them.');
+            return;
+        }
+
+        const words = userText.split(/\W+/).map(correctWord);
+        let scores = [];
+
+        dataset.forEach(entry => {
+            let score = entry.symptoms.reduce((acc, sym) => acc + (words.includes(sym) ? 1 : 0), 0);
+            if (score > 0) scores.push({ ...entry, score });
+        });
+
+        scores.sort((a, b) => b.score - a.score);
+
+        if (scores.length > 0) {
+            let top = scores.slice(0, 3);
+            let reply = top.map(match => `🩺 <b>${match.condition}</b><br>👨‍⚕️ ${match.specialist} — Match Score: ${match.score}`).join('<br><br>');
+            reply += `<br><br><button style='margin-top: 10px; padding: 0.5rem 1rem; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;' onclick="window.location.href='appointment.html'">📅 Book Appointment Now</button>`;
+            addMessage('Bot', reply);
+            const speak = new SpeechSynthesisUtterance(`Based on your symptoms, I suggest ${top[0].condition}. Please consult a ${top[0].specialist}.`);
+            speechSynthesis.speak(speak);
+        } else {
+            addMessage('Bot', '🤔 I couldn’t match those symptoms. Try different words or consult a doctor.');
+        }
+    }
+
+    function startVoiceInput() {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert('Voice recognition not supported in this browser. Please use Chrome.');
+            return;
+        }
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.start();
+        recognition.onresult = function(event) {
+            document.getElementById('userInput').value = event.results[0][0].transcript;
+            sendSymptom();
+        };
+    }
+
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+    }
+
+    window.onload = () => {
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark');
+        }
+    }
+
+    function downloadSummary() {
+        const chatLog = document.getElementById('chat').innerText;
+        const blob = new Blob([chatLog], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'symptom-summary.txt';
+        a.click();
+    }
+
+    function readDocText(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            document.getElementById('userInput').value = text;
+            sendSymptom();
+        };
+        if (file.type === 'application/pdf') {
+            reader.readAsArrayBuffer(file);
+            reader.onload = function(e) {
+                const typedarray = new Uint8Array(e.target.result);
+                pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                    let fullText = '';
+                    let pages = [];
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        pages.push(pdf.getPage(i).then(page => page.getTextContent().then(tc => tc.items.map(i => i.str).join(' '))));
+                    }
+                    Promise.all(pages).then(texts => {
+                        fullText = texts.join(' ');
+                        document.getElementById('userInput').value = fullText;
+                        sendSymptom();
+                    });
+                });
+            };
+        } else {
+            reader.readAsText(file);
+        }
+    }
+</script>
+</body>
+</html>

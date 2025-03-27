@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6b23c3;
+            --secondary: #d38ff0;
+            --accent: #FFC107;
+            --light-bg: #f9f9f9;
+            --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0c2ff, #a88be4);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: var(--card-shadow);
+            animation: fadeIn 0.6s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+            font-size: 1em;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 8px rgba(107, 35, 195, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            font-size: 1em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .confirmation {
+            display: none;
+            text-align: center;
+            padding: 25px;
+            background: rgba(255, 193, 7, 0.8);
+            color: #333;
+            border-radius: 12px;
+            margin-top: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 1em;
+            display: none;
+            padding: 10px;
+            background-color: #ffe1e1;
+            border-radius: 8px;
+            border: 1px solid #ffb3b3;
+        }
+
+        .hospital-list {
+            margin-top: 30px;
+        }
+
+        .hospital-item {
+            border: 1px solid #eee;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
+        }
+
+        .hospital-item button {
+            margin-top: 15px;
+            width: auto;
+            padding: 12px 25px;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 25px;
+            background-color: #e6f4e5;
+            color: #155724;
+            border-radius: 12px;
+            margin-top: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            animation: fadeIn 0.6s ease-in-out;
+            border: 1px solid #c3e6cb;
+            background-color: #d4edda;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Book an Appointment</h1>
+        <form id="appointment-form">
+            <label>Appointment Type:</label>
+            <select id="appointmentType" class="form-control" required>
+                <option value="normal">Normal</option>
+                <option value="emergency">Emergency</option>
+            </select>
+
+            <label>Consultation Type:</label>
+            <select id="consultationType" class="form-control" required>
+                <option value="online">Online</option>
+                <option value="offline">Offline</option>
+            </select>
+
+            <label>Doctor Gender Preference:</label>
+            <select id="genderPreference" class="form-control" required>
+                <option value="any">Any</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+
+            <label for="specialization">Specialization</label>
+            <select id="specialization" class="form-control" required>
+                <option value="">Select Specialization</option>
+                <option>Cardiology</option>
+                <option>Dermatology</option>
+                <option>Neurology</option>
+                <option>Orthopedics</option>
+                <option>Pediatrics</option>
+                <option>Psychiatry</option>
+                <option>Gastroenterology</option>
+                <option>Ophthalmology</option>
+                <option>ENT</option>
+                <option>Nephrology</option>
+                <option>Oncology</option>
+                <option>Urology</option>
+                <option>Endocrinology</option>
+                <option>Rheumatology</option>
+                <option>Pulmonology</option>
+                <option>Hematology</option>
+                <option>Gynecology</option>
+                <option>And 35+ more...</option>
+            </select>
+
+            <label for="date">Date</label>
+            <input type="date" id="date" class="form-control" required>
+
+            <label for="time">Time</label>
+            <input type="time" id="time" class="form-control" required>
+
+            <button type="button" id="find-hospitals" class="btn">Find Nearby Hospitals</button>
+        </form>
+
+        <div id="error-message" class="error-message"></div>
+        <div id="hospital-list" class="hospital-list"></div>
+        <div id="confirmation" class="confirmation"></div>
+        <div id="success-message" class="success-message"></div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const dateInput = document.getElementById("date");
+            const confirmation = document.getElementById("confirmation");
+            const hospitalList = document.getElementById("hospital-list");
+            const findHospitalsButton = document.getElementById("find-hospitals");
+            const consultationType = document.getElementById("consultationType");
+            const errorMessage = document.getElementById("error-message");
+            const successMessage = document.getElementById("success-message");
+
+            const today = new Date();
+            dateInput.min = today.toISOString().split("T")[0];
+
+            findHospitalsButton.addEventListener("click", function() {
+                errorMessage.style.display = "none"; // Hide any previous error message
+                successMessage.style.display = "none";
+                const selectedDate = new Date(dateInput.value);
+
+                if (selectedDate < today) {
+                    errorMessage.textContent = "Error: Please select a date in the future.";
+                    errorMessage.style.display = "block";
+                    return; // Stop execution if the date is in the past
+                }
+
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(position => {
+                        const userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        findNearbyHospitals(userLocation);
+                    }, () => {
+                        alert("Could not get your location. Please enable location services and try again.");
+                    });
+                } else {
+                    alert("Geolocation is not supported by your browser.");
+                }
+            });
+
+            function findNearbyHospitals(userLocation) {
+                const hospitals = simulateGoogleMapsPlacesAPI(userLocation);
+
+                hospitalList.innerHTML = hospitals.map(hospital => `
+                    <div class="hospital-item">
+                        <strong>${hospital.name}</strong><br>
+                        ${hospital.address}<br>
+                        <button class="btn book-hospital" data-hospital-id="${hospital.id}">Book here</button>
+                    </div>
+                `).join("");
+
+                document.querySelectorAll(".book-hospital").forEach(button => {
+                    button.addEventListener("click", function() {
+                        const hospitalId = this.getAttribute("data-hospital-id");
+                        const selectedHospital = hospitals.find(h => h.id === hospitalId);
+
+                        const selectedDate = new Date(dateInput.value);
+                        const timeDiff = selectedDate - today;
+                        const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                        let bookingMessage = "";
+
+                        if (daysLeft < 0) {
+                            errorMessage.textContent = "Error: Cannot book for a past date.";
+                            errorMessage.style.display = "block";
+                            confirmation.style.display = "none";
+                            return;
+                        }
+
+                        if (consultationType.value === 'online') {
+                            bookingMessage = `🎉 Online Ticket Booked at <b>${selectedHospital.name}</b>! Your appointment is in <b>${daysLeft}</b> days. A link to the online meeting will be sent to your email.`;
+                        } else {
+                            bookingMessage = `🎉 Offline Ticket Booked at <b>${selectedHospital.name}</b>! Your appointment is in <b>${daysLeft}</b> days.`;
+                        }
+
+                        errorMessage.style.display = "none";
+                        successMessage.innerHTML = `Congratulations! The appointment is booked. The doctor is looking forward to meet you.  ${bookingMessage}`;
+                        successMessage.style.display = "block";
+                    });
+                });
+            }
+
+            function simulateGoogleMapsPlacesAPI(userLocation) {
+                return [
+                    { name: "General Clinic", address: "789 Pine Ln", id: "general-clinic" },
+                    { name: "Gwalior Hospital", address: "near some place", id: "gwalior-hospital"},
+                    { name: "Apollo Gwalior", address: "near another place", id: "apollo-gwalior"},
+                    { name: "Birla Hospital", address: "near yet another place", id: "birla-hospital"}
+                ];
+            }
+        });
+    </script>
+</body>
+</html>
